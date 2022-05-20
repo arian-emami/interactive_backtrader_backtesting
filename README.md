@@ -30,4 +30,4 @@ When backtest is finshed you will be presented with the resault both in terminal
 
 Feel free to ask me any questions.
 
-
+Special thanks to @M220 for his help with cleaning the codebase
