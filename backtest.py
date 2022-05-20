@@ -250,7 +250,7 @@ def starter(
 
 if __name__ == "__main__":
     starter(
-        data_name="DaraTestSet3",
-        fromdate=datetime.datetime(2021, 7, 14),
-        todate=datetime.datetime(2021, 9, 7)
+        data_name="DaraTestSet3", # enter dataset name here
+        fromdate=datetime.datetime(2021, 7, 14), # start day of backtest
+        todate=datetime.datetime(2021, 9, 7) # end day of backtest + 1
     )
