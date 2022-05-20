@@ -10,9 +10,20 @@ from btplotting import BacktraderPlotting
 from btplotting.schemes import Tradimo
 from backtrader.indicators import MovAv
 
-
+# pfkaf
 class macd_signal(bt.Indicator):
-    # Uses MACD indicator to give crossover signals
+    """
+    Uses MACD indicator to give crossover signals
+    Attributes:
+        alias (tuple):      Name of the signal
+
+        params (tuple):      Indicator parameters such as period_me1, period_me2, period_signal, movav
+
+        lines (tuple):      lines of signal generator
+
+        plotinfo (dict):    plotting settings
+    """
+
     alias = ("MACDSIG",)
     params = (
         ("period_me1", 12),
@@ -24,23 +35,23 @@ class macd_signal(bt.Indicator):
         "mode",
         "sig",
     )
-    plotinfo = dict(
-        plot=True,
-        subplot=True,
-        plotname="",
-        plotskip=False,
-        plotabove=False,
-        plotlinelabels=False,
-        plotlinevalues=True,
-        plotvaluetags=True,
-        plotymargin=0.0,
-        plotyhlines=[],
-        plotyticks=[],
-        plothlines=[],
-        plotforce=False,
-        plotmaster=None,
-        plotylimited=True,
-    )
+    plotinfo = {
+        "plot": True,
+        "subplot": True,
+        "plotname": "",
+        "plotskip": False,
+        "plotabove": False,
+        "plotlinelabels": False,
+        "plotlinevalues": True,
+        "plotvaluetags": True,
+        "plotymargin": 0.0,
+        "plotyhlines": [],
+        "plotyticks": [],
+        "plothlines": [],
+        "plotforce": False,
+        "plotmaster": None,
+        "plotylimited": True,
+    }
 
     def __init__(self) -> None:
         self.macd = bt.indicators.MACD(
@@ -51,32 +62,40 @@ class macd_signal(bt.Indicator):
         )
         super(macd_signal, self).__init__()
 
-    def next(self):
-        # Set signal to 1 for buy and -1 to sell
-        self.lines.mode[0] = 0.0
-        self.lines.sig[0] = 0.0
-        if self.macd.lines.macd[0] > 0.0:
-            if self.macd.lines.macd[0] > self.macd.lines.signal[0]:
-                self.lines.mode[0] = 1.0
-        if self.lines.mode[0] == 1 and self.lines.mode[-1] == 0:
-            self.lines.sig[0] = 1
-        elif self.lines.mode[0] == 0 and self.lines.mode[-1] == 1:
-            self.lines.sig[0] = -1
+    def next(self) -> None:
+        """Set signal to 1 for buy and -1 to sell"""
+        lines = self.lines
+        macd = self.macd
+        lines.mode[0] = 0.0
+        lines.sig[0] = 0.0
+        if macd.lines.macd[0] > 0.0:
+            if macd.lines.macd[0] > macd.lines.signal[0]:
+                lines.mode[0] = 1.0
+        if lines.mode[0] == 1 and lines.mode[-1] == 0:
+            lines.sig[0] = 1
+        elif lines.mode[0] == 0 and lines.mode[-1] == 1:
+            lines.sig[0] = -1
 
 
 class main(bt.Strategy):
+    """
+    The main strategy class
 
-    params = dict(
-        period_me1=12,
-        period_me2=26,
-        period_signal=9,
-        size=0.99,
-        save_exposure=True,
-        calculate_commision=True,
-    )
+    Attributes:
+        params (dict):      strategy settings
+    """
 
-    def log_exposure(self, exposure, dt=None):
-        # Log exposure into a csv file
+    params = {
+        "period_me1": 12,
+        "period_me2": 26,
+        "period_signal": 9,
+        "size": 0.99,
+        "save_exposure": True,
+        "calculate_commision": True,
+    }
+
+    def log_exposure(self, exposure, dt=None) -> None:
+        """Log exposure into a csv file"""
         if self.p.save_exposure:
             dt = dt or self.data.datetime[0]
             dt = bt.num2date(dt)
@@ -86,8 +105,8 @@ class main(bt.Strategy):
                 # Add contents of list as last row in the csv file
                 csv_writer.writerow([dt.strftime("%Y-%m-%d %H:%M:%S"), exposure])
 
-    def log_comm(self, exposure, dt=None):
-        # Log commisions in a csv file
+    def log_comm(self, exposure, dt=None) -> None:
+        """Log commisions into a csv file"""
         if self.p.calculate_commision:
             dt = dt or self.data.datetime[0]
             dt = bt.num2date(dt)
@@ -97,8 +116,8 @@ class main(bt.Strategy):
                 # Add contents of list as last row in the csv file
                 csv_writer.writerow([dt.strftime("%Y-%m-%d %H:%M:%S"), exposure])
 
-    def __init__(self):
-        # To control operation entries
+    def __init__(self) -> None:
+        """To control operation entries"""
         self.order = None
         self.exposure_df = pd.DataFrame
         # Indicators
@@ -112,7 +131,8 @@ class main(bt.Strategy):
         # Keep track of oreders
         self.tradeid = itertools.cycle([0])
 
-    def next(self):
+    def next(self) -> None:
+        """Gets called on each days open and only has access to previous close"""
         if self.order:
             return  # if an order is active, no new orders are allowed
 
@@ -135,7 +155,13 @@ class main(bt.Strategy):
         else:
             self.log_exposure("0.00")
 
-    def notify_order(self, order):
+    def notify_order(self, order) -> None:
+        """
+        Gets called on each market event such as position open and close
+
+        Parameters:
+            order (type):       order description
+        """
         if order.status in [bt.Order.Submitted, bt.Order.Accepted]:
             return  # Await further notifications
         if order.status == order.Completed:
@@ -143,10 +169,20 @@ class main(bt.Strategy):
 
 
 def starter(
-    data_name="DaraTestSet3",  # name of test set
+    data_name="DaraTestSet3",
     fromdate=datetime.datetime(2021, 7, 14),
     todate=datetime.datetime(2021, 9, 7),
-):
+) -> None:
+    """
+    The starter function
+
+    Parameters:
+        date_name       name of test set
+
+        fromdate        start day of backtest
+
+        todate          end day of backtest + 1
+    """
     calculate_commision = (
         True  # Set true if you want to recalculate exposures. may take a few minutes
     )
@@ -250,7 +286,7 @@ def starter(
 
 if __name__ == "__main__":
     starter(
-        data_name="DaraTestSet3", # enter dataset name here
-        fromdate=datetime.datetime(2021, 7, 14), # start day of backtest
-        todate=datetime.datetime(2021, 9, 7) # end day of backtest + 1
+        data_name="DaraTestSet3",  # enter dataset name here
+        fromdate=datetime.datetime(2021, 7, 14),  # start day of backtest
+        todate=datetime.datetime(2021, 9, 7),  # end day of backtest + 1
     )
