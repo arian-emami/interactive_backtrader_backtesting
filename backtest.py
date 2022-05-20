@@ -10,9 +10,9 @@ from btplotting import BacktraderPlotting
 from btplotting.schemes import Tradimo
 from backtrader.indicators import MovAv
 
-#pfkaf
+# pfkaf
 class macd_signal(bt.Indicator):
-    ''' 
+    """
     Uses MACD indicator to give crossover signals
     Attributes:
         alias (tuple):      Name of the signal
@@ -22,7 +22,7 @@ class macd_signal(bt.Indicator):
         lines (tuple):      lines of signal generator
 
         plotinfo (dict):    plotting settings
-    '''
+    """
 
     alias = ("MACDSIG",)
     params = (
@@ -63,7 +63,7 @@ class macd_signal(bt.Indicator):
         super(macd_signal, self).__init__()
 
     def next(self) -> None:
-        '''Set signal to 1 for buy and -1 to sell'''
+        """Set signal to 1 for buy and -1 to sell"""
         lines = self.lines
         macd = self.macd
         lines.mode[0] = 0.0
@@ -78,12 +78,13 @@ class macd_signal(bt.Indicator):
 
 
 class main(bt.Strategy):
-    '''
+    """
     The main strategy class
-    
+
     Attributes:
         params (dict):      strategy settings
-    '''
+    """
+
     params = {
         "period_me1": 12,
         "period_me2": 26,
@@ -94,7 +95,7 @@ class main(bt.Strategy):
     }
 
     def log_exposure(self, exposure, dt=None) -> None:
-        '''Log exposure into a csv file'''
+        """Log exposure into a csv file"""
         if self.p.save_exposure:
             dt = dt or self.data.datetime[0]
             dt = bt.num2date(dt)
@@ -102,11 +103,10 @@ class main(bt.Strategy):
                 # Create a writer object from csv module
                 csv_writer = writer(write_obj)
                 # Add contents of list as last row in the csv file
-                csv_writer.writerow(
-                    [dt.strftime("%Y-%m-%d %H:%M:%S"), exposure])
+                csv_writer.writerow([dt.strftime("%Y-%m-%d %H:%M:%S"), exposure])
 
     def log_comm(self, exposure, dt=None) -> None:
-        '''Log commisions into a csv file'''
+        """Log commisions into a csv file"""
         if self.p.calculate_commision:
             dt = dt or self.data.datetime[0]
             dt = bt.num2date(dt)
@@ -114,10 +114,10 @@ class main(bt.Strategy):
                 # Create a writer object from csv module
                 csv_writer = writer(write_obj)
                 # Add contents of list as last row in the csv file
-                csv_writer.writerow(
-                    [dt.strftime("%Y-%m-%d %H:%M:%S"), exposure])
+                csv_writer.writerow([dt.strftime("%Y-%m-%d %H:%M:%S"), exposure])
+
     def __init__(self) -> None:
-        '''To control operation entries'''
+        """To control operation entries"""
         self.order = None
         self.exposure_df = pd.DataFrame
         # Indicators
@@ -132,7 +132,7 @@ class main(bt.Strategy):
         self.tradeid = itertools.cycle([0])
 
     def next(self) -> None:
-        '''Gets called on each days open and only has access to previous close'''
+        """Gets called on each days open and only has access to previous close"""
         if self.order:
             return  # if an order is active, no new orders are allowed
 
@@ -156,12 +156,12 @@ class main(bt.Strategy):
             self.log_exposure("0.00")
 
     def notify_order(self, order) -> None:
-        '''
+        """
         Gets called on each market event such as position open and close
 
         Parameters:
             order (type):       order description
-        '''
+        """
         if order.status in [bt.Order.Submitted, bt.Order.Accepted]:
             return  # Await further notifications
         if order.status == order.Completed:
@@ -173,7 +173,8 @@ def starter(
     fromdate=datetime.datetime(2021, 7, 14),
     todate=datetime.datetime(2021, 9, 7),
 ) -> None:
-    """TODO: Add description
+    """
+    The starter function
 
     Parameters:
         date_name       name of test set
@@ -287,5 +288,5 @@ if __name__ == "__main__":
     starter(
         data_name="DaraTestSet3",  # enter dataset name here
         fromdate=datetime.datetime(2021, 7, 14),  # start day of backtest
-        todate=datetime.datetime(2021, 9, 7)  # end day of backtest + 1
+        todate=datetime.datetime(2021, 9, 7),  # end day of backtest + 1
     )
