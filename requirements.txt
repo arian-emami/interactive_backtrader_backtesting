@@ -1,0 +1,3 @@
+openpyxl
+Backtrader
+git+https://github.com/happydasch/btplotting
