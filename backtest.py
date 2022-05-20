@@ -10,20 +10,20 @@ from btplotting import BacktraderPlotting
 from btplotting.schemes import Tradimo
 from backtrader.indicators import MovAv
 
-
+#pfkaf
 class macd_signal(bt.Indicator):
-    """Uses MACD indicator to give crossover signals
-
-    TODO
+    ''' 
+    Uses MACD indicator to give crossover signals
     Attributes:
-        alias (tuple):      alias description
+        alias (tuple):      Name of the signal
 
-        params (tuple):      params description
+        params (tuple):      Indicator parameters such as period_me1, period_me2, period_signal, movav
 
-        lines (tuple):      lines description
+        lines (tuple):      lines of signal generator
 
-        plotinfo (dict):    plotinfo description
-    """
+        plotinfo (dict):    plotting settings
+    '''
+
     alias = ("MACDSIG",)
     params = (
         ("period_me1", 12),
@@ -54,7 +54,6 @@ class macd_signal(bt.Indicator):
     }
 
     def __init__(self) -> None:
-        """TODO: Add simple description"""
         self.macd = bt.indicators.MACD(
             self.data.close,
             period_me1=self.p.period_me1,
@@ -64,7 +63,7 @@ class macd_signal(bt.Indicator):
         super(macd_signal, self).__init__()
 
     def next(self) -> None:
-        """Set signal to 1 for buy and -1 to sell"""
+        '''Set signal to 1 for buy and -1 to sell'''
         lines = self.lines
         macd = self.macd
         lines.mode[0] = 0.0
@@ -79,12 +78,12 @@ class macd_signal(bt.Indicator):
 
 
 class main(bt.Strategy):
-    """TODO: Add class description
-
-    TODO
+    '''
+    The main strategy class
+    
     Attributes:
-        params (dict):      params description
-    """
+        params (dict):      strategy settings
+    '''
     params = {
         "period_me1": 12,
         "period_me2": 26,
@@ -94,8 +93,31 @@ class main(bt.Strategy):
         "calculate_commision": True,
     }
 
+    def log_exposure(self, exposure, dt=None) -> None:
+        '''Log exposure into a csv file'''
+        if self.p.save_exposure:
+            dt = dt or self.data.datetime[0]
+            dt = bt.num2date(dt)
+            with open("exposure.csv", "a+", newline="") as write_obj:
+                # Create a writer object from csv module
+                csv_writer = writer(write_obj)
+                # Add contents of list as last row in the csv file
+                csv_writer.writerow(
+                    [dt.strftime("%Y-%m-%d %H:%M:%S"), exposure])
+
+    def log_comm(self, exposure, dt=None) -> None:
+        '''Log commisions into a csv file'''
+        if self.p.calculate_commision:
+            dt = dt or self.data.datetime[0]
+            dt = bt.num2date(dt)
+            with open("comm.csv", "a+", newline="") as write_obj:
+                # Create a writer object from csv module
+                csv_writer = writer(write_obj)
+                # Add contents of list as last row in the csv file
+                csv_writer.writerow(
+                    [dt.strftime("%Y-%m-%d %H:%M:%S"), exposure])
     def __init__(self) -> None:
-        """To control operation entries"""
+        '''To control operation entries'''
         self.order = None
         self.exposure_df = pd.DataFrame
         # Indicators
@@ -109,46 +131,8 @@ class main(bt.Strategy):
         # Keep track of oreders
         self.tradeid = itertools.cycle([0])
 
-    def log_exposure(self, exposure, dt=None) -> None:
-        """Log exposure into a csv file
-
-        TODO
-        Paramteres:
-            exposure (type):    exposure description
-
-            dt (type):          dt description
-        """
-        if self.p.save_exposure:
-            dt = dt or self.data.datetime[0]
-            dt = bt.num2date(dt)
-            with open("exposure.csv", "a+", newline="") as write_obj:
-                # Create a writer object from csv module
-                csv_writer = writer(write_obj)
-                # Add contents of list as last row in the csv file
-                csv_writer.writerow(
-                    [dt.strftime("%Y-%m-%d %H:%M:%S"), exposure])
-
-    def log_comm(self, exposure, dt=None) -> None:
-        """Log commisions into a csv file
-
-        TODO
-        Paramteres:
-            exposure (type):    exposure description
-
-            dt (type):          dt description
-        """
-        if self.p.calculate_commision:
-            dt = dt or self.data.datetime[0]
-            dt = bt.num2date(dt)
-            with open("comm.csv", "a+", newline="") as write_obj:
-                # Create a writer object from csv module
-                csv_writer = writer(write_obj)
-                # Add contents of list as last row in the csv file
-                csv_writer.writerow(
-                    [dt.strftime("%Y-%m-%d %H:%M:%S"), exposure])
-
     def next(self) -> None:
-        """TODO: Add description"""
+        '''Gets called on each days open and only has access to previous close'''
         if self.order:
             return  # if an order is active, no new orders are allowed
 
@@ -172,11 +156,12 @@ class main(bt.Strategy):
             self.log_exposure("0.00")
 
     def notify_order(self, order) -> None:
-        """TODO: Add description
+        '''
+        Gets called on each market event such as position open and close
 
         Parameters:
             order (type):       order description
-        """
+        '''
         if order.status in [bt.Order.Submitted, bt.Order.Accepted]:
             return  # Await further notifications
         if order.status == order.Completed:
@@ -193,9 +178,9 @@ def starter(
     Parameters:
         date_name       name of test set
 
-        fromdate        fromdate description
+        fromdate        start day of backtest
 
-        todate          todate description
+        todate          end day of backtest + 1
     """
     calculate_commision = (
         True  # Set true if you want to recalculate exposures. may take a few minutes
